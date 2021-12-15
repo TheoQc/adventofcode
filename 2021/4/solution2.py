@@ -21,8 +21,11 @@ class Board:
         self.lines = tuple(lines)
         self.rowDone = [0 for i in range(5)]
         self.colDone = [0 for i in range(5)]
+        self.won = False
 
     def AddNum(self, number):
+        if self.won:
+            return False
         for i in range(boardSide):
             for j in range(boardSide):
                 if self.lines[i][j] == number:
@@ -33,10 +36,10 @@ class Board:
                         print(self.rowDone)
                         print(self.colDone)
                         print(self)
-                        return True
+                        self.won = True
 
                     # print("number %d found on board %d " % (number, self.boardIndex))
-                    return False
+                    return self.won
 
     def GetScore(self, numSoFar):
         otherNum = [num for line in self.lines for num in line if num not in numSoFar]
@@ -76,18 +79,23 @@ def main():
     # print(boards[0])
     # print(boards[0].rowDone)
 
-    index = 0
+    seqIndex = 0
+    boardWin = 0
     for number in sequence:
-        index = index + 1
+        seqIndex = seqIndex + 1
         for board in boards:
             if board.AddNum(number):
-                print("Game stopped at number %d/%d" % (index, len(sequence)))
-                numSofar = sequence[:index]
-                # print(numSofar)
-                boardScore = board.GetScore(numSofar)
-                print("board score:", boardScore)
-                print("result:", boardScore * numSofar[-1])
-                return None
+                boardWin = boardWin + 1
+                if boardWin == len(boards):
+                    print("boards won", boardWin)
+                    print("Game stopped at number %d/%d" % (seqIndex, len(sequence)))
+                    numSofar = sequence[:seqIndex]
+                    # print(numSofar)
+                    boardScore = board.GetScore(numSofar)
+                    print("board score:", boardScore)
+                    print("last number", numSofar[-1])
+                    print("result:", boardScore * numSofar[-1])
+                    return None
 
 
 if __name__ == "__main__":
