@@ -56,19 +56,27 @@ def MakeSystem(lines):
     return system
 
 
-def GetPaths(fromNode, exclude):
+def GetPaths(fromNode, exclude, once, noMore):
     fullPaths = []
     if fromNode.name == "end":
-        print("found end")
         fullPaths.append(tuple([fromNode]))
         return fullPaths
 
     if not fromNode.multiple:
-        exclude = (*exclude, fromNode)
+        if noMore:
+            exclude = (*exclude, fromNode)
+        else:
+            if fromNode in once:
+                noMore = True
+                exclude = (*exclude, *once)
+            else:
+                once = (*once, fromNode)
+
     for connection in fromNode.connections:
         if connection not in exclude:
-            for subPath in GetPaths(connection, exclude):
-                fullPaths.append((fromNode, *subPath))
+            for subPath in GetPaths(connection, exclude, once, noMore):
+                if subPath is not None and subPath[-1] is not None:
+                    fullPaths.append((fromNode, *subPath))
 
     return tuple(fullPaths)
 
@@ -76,8 +84,10 @@ def GetPaths(fromNode, exclude):
 def main():
     Intro()
 
+    # ------------------------------------------------
     testInput = False
     # testInput = True
+    # ------------------------------------------------
 
     # Read file
     lines = []
@@ -92,9 +102,12 @@ def main():
 
     print("Cave System:", system.values())
 
-    paths = GetPaths(system["start"], ())
+    paths = GetPaths(system["start"], [system["start"]], (), False)
+
+    paths = [",".join([node.name for node in path]) for path in paths]
+    paths = sorted(paths)
     for index, path in enumerate(paths):
-        print("Path %d:" % index, ",".join([node.name for node in path]))
+        print("Path %d:" % index, path)
 
     answer = 0
     answer = len(paths)
